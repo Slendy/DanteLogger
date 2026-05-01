@@ -258,8 +258,9 @@ public static class CommandUtil
                     TxDeviceName = txDeviceName,
                 };
                 channelData.Add(rxData);
-                
+                #if DEBUG
                 Log.Debug("subscriptionResponse ch {ChannelNumber}: {JsonDump}", i, JsonSerializer.Serialize(rxData));
+                #endif
             }
 
             return channelData;
