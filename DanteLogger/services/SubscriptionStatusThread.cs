@@ -12,11 +12,11 @@ public class SubscriptionStatusThread
 {
     public required DiscoveredDevice Parent { get; set; }
 
-    private UdpClient _client;
+    private UdpClient _client = null!;
     
     private Thread? _pollingThread;
 
-    private IPEndPoint _targetDevice;
+    private IPEndPoint _targetDevice = null!;
 
     public ushort RxChannelCount { get; set; } = 0;
     public ushort TxChannelCount { get; set; } = 0;
