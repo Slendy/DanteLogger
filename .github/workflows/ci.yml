@@ -1,0 +1,116 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    name: Build, and Upload Builds (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x' # Targets the latest .NET 10 SDK
+
+      - name: Publish for Linux x64
+        if: matrix.os == 'ubuntu-latest'
+        run: dotnet publish -c Release -r linux-x64 --self-contained DanteLogger
+
+      - name: Publish for Linux ARM64
+        if: matrix.os == 'ubuntu-latest'
+        run: dotnet publish -c Release -r linux-arm64 --self-contained DanteLogger
+
+      - name: Publish for Windows x64
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: dotnet publish -c Release -r win-x64 --no-self-contained DanteLogger
+
+      - name: Publish for macOS x64
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: dotnet publish -c Release -r osx-x64 --self-contained DanteLogger 
+
+      - name: Publish for macOS ARM64
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: dotnet publish -c Release -r osx-arm64 --self-contained DanteLogger
+        
+      - name: Create macOS universal2 binary
+          if: matrix.os == 'macos-latest'
+          shell: bash
+          working-directory: DanteLogger/bin/Release/net10.0/
+          run: |
+            mkdir -p osx-universal2/publish/DanteLogger.app/Contents/MacOS
+            cp -r osx-arm64/publish/*.app/Contents/ osx-universal2/publish/DanteLogger.app/Contents/
+            for file in $(find osx-arm64/publish/*.app/Contents/MacOS); do
+              if [[ "$(file $file)" == *"Mach-O"* ]]; then
+                  if [[ "$(lipo -archs $file)" != *"x86_64 arm64"* ]]; then
+                    lipo -create osx-arm64/publish/*.app/Contents/MacOS/$(basename $file) osx-x64/publish/*.app/Contents/MacOS/$(basename $file) -output osx-universal2/publish/DanteLogger.app/Contents/MacOS/$(basename $file);
+                  fi;
+              fi;
+            done
+            rm -rfv osx-universal2/publish/DanteLogger.app/Contents/MacOS/*.app
+            codesign -fs - --deep osx-universal2/publish/DanteLogger.app
+
+      # We need to tarball our macOS and Linux builds, since the ZIP files created by upload-artifact do not retain extended unix file permissions, 
+      # which means the executable bit is lost, which is un-ideal for end users, who will hit weird errors (especially relating to code signing on macOS)
+      - name: 'Tar macOS universal2 build'
+        if: matrix.os == 'macos-latest'
+        working-directory: DanteLogger/bin/Release/net10.0/osx-universal2/publish/
+        run: tar -cvf ../../../../../../DanteLogger-macOS.tar *.app 
+
+      - name: 'Tar Linux x64'
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: Refresher/bin/Release/net9.0/linux-x64/publish/
+        run: tar -cvf ../../../../../../Refresher-x64.tar *
+
+      - name: 'Tar Linux ARM64'
+        if: matrix.os == 'ubuntu-latest'
+        working-directory: Refresher/bin/Release/net9.0/linux-arm64/publish/
+        run: tar -cvf ../../../../../../Refresher-arm64.tar *
+
+      - name: Upload Linux x64 build
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: "DanteLogger for Linux x64"
+          path: "DanteLogger-x64.tar"
+          if-no-files-found: error
+          retention-days: 30
+          
+      - name: Upload Linux ARM64 build
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: "DanteLogger for Linux ARM64"
+          path: "DanteLogger-arm64.tar"
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload Windows x64 build
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: "DanteLogger for Windows x64"
+          path: "DanteLogger/bin/Release/net9.0-windows/win-x64/publish/DanteLogger.exe"
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload macOS universal2 build
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: "DanteLogger for macOS universal2"
+          path: "DanteLogger-macOS.tar"
+          if-no-files-found: error
+          retention-days: 30
