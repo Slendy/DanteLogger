@@ -11,7 +11,7 @@ var levelSwitch = new LoggingLevelSwitch
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.ControlledBy(levelSwitch)
     .WriteTo.Console(outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
-    .WriteTo.File("logs/dante-logger-.txt", rollingInterval: RollingInterval.Day)
+    .WriteTo.File("dante-logger-.txt", rollingInterval: RollingInterval.Day)
     .CreateLogger();
 
 if (args.Length > 0)
