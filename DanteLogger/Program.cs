@@ -21,7 +21,7 @@ if (args.Length > 0)
 {
     if (args[0] == "-v" || args[0] == "--version")
     {
-        Log.Information("DanteLogger v{Tag} {GitCommit}", ThisAssembly.Git.Tag, ThisAssembly.Git.Commit);
+        Log.Information("DanteLogger v{Tag} {GitCommit}", VersionUtil.GetVersion(), ThisAssembly.Git.Commit);
         Log.Information("Git Branch: {Branch}", ThisAssembly.Git.Branch);
         Log.Information("Git Commit Date: {CommitDate}", ThisAssembly.Git.CommitDate);
         Log.Information("Git Repo Url: {RepoUrl}", ThisAssembly.Git.RepositoryUrl);
@@ -76,7 +76,7 @@ if (args.Length > 0)
 try
 {
     Log.Information("Starting Dante Disconnect Monitor...");
-    Log.Information("Version: {Version}, Commit {Commit}", ThisAssembly.Git.Tag, ThisAssembly.Git.Commit);
+    Log.Information("Version: {Version}, Commit {Commit}", VersionUtil.GetVersion(), ThisAssembly.Git.Commit);
     var danteMonitor = new DanteDisconnectMonitor(CancellationToken.None);
     await danteMonitor.MonitorTask;
 }
