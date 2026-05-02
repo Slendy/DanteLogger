@@ -98,7 +98,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger for Windows x64"
-          path: "DanteLogger/bin/Release/net10.0-windows/win-x64/publish/DanteLogger.dll"
+          path: "DanteLogger/bin/Release/net10.0/win-x64/publish/DanteLogger.exe"
           if-no-files-found: error
           retention-days: 30
           
@@ -107,7 +107,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger for Windows Arm64"
-          path: "DanteLogger/bin/Release/net10.0-windows/win-arm64/publish/DanteLogger.dll"
+          path: "DanteLogger/bin/Release/net10.0/win-arm64/publish/DanteLogger.exe"
           if-no-files-found: error
           retention-days: 30
 
