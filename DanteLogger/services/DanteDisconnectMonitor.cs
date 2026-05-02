@@ -54,14 +54,16 @@ public class DanteDisconnectMonitor
             if (oldState == DanteDeviceConnectionState.NoAudio && newState != DanteDeviceConnectionState.NoAudio)
             {
                 Log.Warning(
-                    "[{DeviceName}]: Audio traffic has been restored on channel {SubscriptionDataChannelNumber} ({SubscriptionDataCurrentChannelName}) Connection Type: {ConnectionType}",
-                    deviceName, subscriptionData.ChannelNumber, subscriptionData.CurrentChannelName,
+                    "[{RxChannelName} @ {DeviceName}]: Audio traffic from has been restored on channel {RxChannelNumber}. Transmitter: {TxDeviceChannel} @ {TxDeviceName}, Connection Type: {ConnectionType}",
+                    subscriptionData.CurrentChannelName, deviceName, subscriptionData.ChannelNumber,
+                    subscriptionData.TxChannelName ?? "Unknown", subscriptionData.TxDeviceName ?? "Unknown",
                     DanteDeviceState.ConnectionStateFromStatus(subscriptionData.Status).GetTransmissionType());
             } else if (newState == DanteDeviceConnectionState.NoAudio && oldState != DanteDeviceConnectionState.NoAudio)
             {
                 Log.Fatal(
-                    "[{DeviceName}]: No audio data on channel {SubscriptionDataChannelNumber} ({SubscriptionDataCurrentChannelName}) Connection Type: {ConnectionType}",
-                    deviceName, subscriptionData.ChannelNumber + 1, subscriptionData.CurrentChannelName,
+                    "[{RxChannelName} @ {DeviceName}]: No audio data on channel {RxChannelNumber}. Transmitter: {TxDeviceChannel} @ {TxDeviceName}, Connection Type: {ConnectionType}",
+                    subscriptionData.CurrentChannelName, deviceName, subscriptionData.ChannelNumber,
+                    subscriptionData.TxChannelName ?? "Unknown", subscriptionData.TxDeviceName ?? "Unknown",
                     DanteDeviceState.ConnectionStateFromStatus(subscriptionData.Status).GetTransmissionType());
             }
         }
@@ -70,12 +72,18 @@ public class DanteDisconnectMonitor
             if (newState == DanteDeviceConnectionState.NoAudio)
             {
                 Log.Fatal(
-                    "[{DeviceName}]: No audio data on channel {SubscriptionDataChannelNumber} ({SubscriptionDataCurrentChannelName}) Connection Type: {ConnectionType}",
-                    deviceName, subscriptionData.ChannelNumber + 1, subscriptionData.CurrentChannelName,
+                    "[{RxChannelName} @ {DeviceName}]: No audio data on channel {RxChannelNumber}. Transmitter: {TxDeviceChannel} @ {TxDeviceName}, Connection Type: {ConnectionType}",
+                    subscriptionData.CurrentChannelName, deviceName, subscriptionData.ChannelNumber,
+                    subscriptionData.TxChannelName ?? "Unknown", subscriptionData.TxDeviceName ?? "Unknown",
                     DanteDeviceState.ConnectionStateFromStatus(subscriptionData.Status).GetTransmissionType());
             } else if (newState != DanteDeviceConnectionState.Unknown)
             {
-                Log.Debug("[{DeviceName}]: Received RX update on channel {ChannelNumber} ({ChannelName}) (state={NewState}) but previous state is unknown.", deviceName, subscriptionData.ChannelNumber, subscriptionData.CurrentChannelName, newState.GetDescription());
+                Log.Debug(
+                    "[{RxChannelName} @ {DeviceName}]: Received RX update on channel {RxChannelNumber}. Transmitter: {TxDeviceChannel} @ {TxDeviceName}, Connection Type: {ConnectionType} (state={NewState})",
+                    subscriptionData.CurrentChannelName, deviceName, subscriptionData.ChannelNumber,
+                    subscriptionData.TxChannelName ?? "Unknown", subscriptionData.TxDeviceName ?? "Unknown",
+                    DanteDeviceState.ConnectionStateFromStatus(subscriptionData.Status).GetTransmissionType(),
+                    newState.GetDescription());
             }
         }
         deviceState.ChannelConnections.AddOrUpdate(subscriptionData.ChannelNumber, newState, (_, _) => newState);
