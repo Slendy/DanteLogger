@@ -134,6 +134,12 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           merge-multiple: true
+          
+      - name: Display structure of downloaded files
+        run: |
+          ls -R
+          ls -R ../
+          ls -R ~
 
       - uses: ncipollo/release-action@v1.21.0
         name: "Create release"
