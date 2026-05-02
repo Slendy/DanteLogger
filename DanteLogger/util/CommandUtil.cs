@@ -184,9 +184,8 @@ public static class CommandUtil
             var totalChannels2 = reader.ReadByte();
             if (totalChannels != totalChannels2)
             {
-                Log.Debug("ParseSubscriptionResponse(): Weird edge case {TotalChannels} != {TotalChannels2}", totalChannels, totalChannels2);
-                Log.Debug("Hex dump: {HexDump}", Convert.ToHexString(data));
-                return null;
+                Log.Warning("ParseSubscriptionResponse(): Weird edge case {TotalChannels} != {TotalChannels2}", totalChannels, totalChannels2);
+                Log.Warning("Hex dump: {HexDump}", Convert.ToHexString(data));
             }
 
             var channelData = new List<RxSubscriptionData>();
@@ -203,23 +202,45 @@ public static class CommandUtil
             for (var i = 0; i < totalChannels; i++)
             {
                 reader.BaseStream.Position = channelIndices[i];
-                // unknown constant
-                reader.ReadBytes(2);
+                
+                // vendor id or dante chip type
+                var recordLength1 = reader.ReadByte();
+                var recordLength2 = reader.ReadByte();
+                
                 var channelNumber = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
-                // unknown constant 2
+                
+                // unknown constant 3
                 reader.ReadBytes(4);
+                
                 // channel number again
                 reader.ReadBytes(2);
-                // zero constant
+                
+                // unknown zero constant
                 reader.ReadBytes(4);
-                // unknown constant 3
+                
+                // unknown constant (0xE)
                 reader.ReadBytes(2);
-                // unknown constant 4
+                
+                // unknown zero constant
                 reader.ReadBytes(4);
+                
                 var currentNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
+
+                // unknown zeros
+                reader.ReadBytes(4);
+
+                if (recordLength1 == 0x16)
+                {
+                    reader.ReadBytes(2);
+                    
+                    // another name index?
+                    reader.ReadBytes(2);
+                }
                 // unknown
-                reader.ReadBytes(8);
+                reader.ReadBytes(2);
+                
                 var defaultNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
+                
                 // unknown
                 reader.ReadBytes(12);
 
