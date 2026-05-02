@@ -98,6 +98,7 @@ public class DanteDisconnectMonitor
         if (rxChannels.Count != subscriptionData.Count)
         {
             Log.Warning("Channel count mismatch ({RxChannelsCount} channels != {SubscriptionDataCount} subscriptions)", rxChannels.Count, subscriptionData.Count);
+            Log.Warning("Highest Subscription Ch = {MaxSubscriptionCh}", subscriptionData.Max(s => s.ChannelNumber));
             return;
         }
 

@@ -79,7 +79,8 @@ public static class CommandUtil
             var subscriptionData = ParseSubscriptionResponse(data.Buffer);
             if (subscriptionData == null)
             {
-                Log.Debug("Subscription data is null for page {PageNumber}", page);
+                Log.Warning("Subscription data is null for page {PageNumber}", page);
+                Log.Warning("Dumping Hex Response: {HexDump}", Convert.ToHexString(data.Buffer));
                 break;
             }
             rxSubscriptions.AddRange(subscriptionData);
