@@ -132,11 +132,8 @@ jobs:
       - name: Download artifacts
         id: download
         uses: actions/download-artifact@v8
-
-      - name: Create zip files
-        run: |
-          cd ${{steps.download.outputs.download-path}}
-          mv ${{steps.download.outputs.download-path}}/*/*.tar.gz .
+        with:
+          merge-multiple: true
 
       - uses: ncipollo/release-action@v1.21.0
         name: "Create release"
@@ -149,4 +146,4 @@ jobs:
           omitBody: 'false'
           omitBodyDuringUpdate: 'false'
           artifacts: |
-            *.tar.gz
+            *.tar *.exe
