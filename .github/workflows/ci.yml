@@ -15,10 +15,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.x' # Targets the latest .NET 10 SDK
 
@@ -33,12 +33,12 @@ jobs:
       - name: Publish for Windows x64
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true
+        run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true
 
       - name: Publish for Windows Arm64
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: dotnet publish -c Release -r win-arm64 -p:PublishTrimmed=true
+        run: dotnet publish -c Release -r win-arm64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true
 
       - name: Publish for macOS x64
         if: matrix.os == 'macos-latest'
@@ -77,7 +77,7 @@ jobs:
 
       - name: Upload Linux x64 build
         if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger for Linux x64"
           path: "DanteLogger/bin/Release/net10.0/linux-x64/publish/DanteLogger-x64.tar"
@@ -86,7 +86,7 @@ jobs:
           
       - name: Upload Linux ARM64 build
         if: matrix.os == 'ubuntu-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger for Linux ARM64"
           path: "DanteLogger/bin/Release/net10.0/linux-arm64/publish/DanteLogger-arm64.tar"
@@ -95,7 +95,7 @@ jobs:
 
       - name: Upload Windows x64 build
         if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger for Windows x64"
           path: "DanteLogger/bin/Release/net10.0-windows/win-x64/publish/DanteLogger.exe"
@@ -104,7 +104,7 @@ jobs:
 
       - name: Upload macOS universal2 build
         if: matrix.os == 'macos-latest'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger for macOS universal2"
           path: "DanteLogger/bin/Release/net10.0/DanteLogger-macOS.tar"
