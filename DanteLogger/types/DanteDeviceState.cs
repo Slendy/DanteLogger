@@ -5,14 +5,9 @@ namespace DanteLogger.types;
 public class DanteDeviceState
 {
     public ConcurrentDictionary<int, DanteDeviceConnectionState> ChannelConnections { get; set; } = new();
-
-    public static DanteDeviceConnectionState ConnectionStateFromStatus(List<int> statusList)
+    
+    public static DanteDeviceConnectionState ConnectionStateFromStatus(int status)
     {
-        var status = statusList.First();
-        if (statusList.Any(s => s == 65536))
-        {
-            status = 65536;
-        }
         return status switch
         {
             9 => DanteDeviceConnectionState.ConnectedUnicast,
@@ -21,6 +16,17 @@ public class DanteDeviceState
             65536 => DanteDeviceConnectionState.NoAudio,
             _ => DanteDeviceConnectionState.Unknown,
         };
+    }
+
+    public static DanteDeviceConnectionState ConnectionStateFromStatus(List<int> statusList)
+    {
+        var status = statusList.First();
+        if (statusList.Any(s => s == 65536))
+        {
+            status = 65536;
+        }
+
+        return ConnectionStateFromStatus(status);
     }
 }
 
@@ -42,6 +48,18 @@ public static class DanteDeviceConnectionStateExtensions
             DanteDeviceConnectionState.Unknown => "Unknown",
             DanteDeviceConnectionState.ConnectedUnicast => "Connected (unicast)",
             DanteDeviceConnectionState.ConnectedMulticast => "Connected (multicast)",
+            DanteDeviceConnectionState.ConnectedManual => "Manually configured",
+            DanteDeviceConnectionState.NoAudio => "No audio data",
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+        };
+    }
+    public static string GetTransmissionType(this DanteDeviceConnectionState state)
+    {
+        return state switch
+        {
+            DanteDeviceConnectionState.Unknown => "Unknown",
+            DanteDeviceConnectionState.ConnectedUnicast => "Unicast",
+            DanteDeviceConnectionState.ConnectedMulticast => "Multicast",
             DanteDeviceConnectionState.ConnectedManual => "Manually configured",
             DanteDeviceConnectionState.NoAudio => "No audio data",
             _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
