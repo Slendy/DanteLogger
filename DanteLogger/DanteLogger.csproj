@@ -10,6 +10,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="GitInfo" Version="3.6.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Makaretu.Dns.Multicast.New" Version="0.38.0" />
       <PackageReference Include="Serilog" Version="4.3.1" />
       <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />

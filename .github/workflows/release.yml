@@ -1,9 +1,13 @@
-name: Build
+# https://acraven.medium.com/a-nuget-package-workflow-using-github-actions-7da8c6557863
+name: Create new release from pushed tag
 
 on:
   push:
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - "*"
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -11,12 +15,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
-    name: Build and Upload (${{ matrix.os }})
+    name: Build And Upload (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-
     steps:
       - uses: actions/checkout@v6
-
+        
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v5
         with:
@@ -49,7 +52,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         shell: bash
         run: dotnet publish -c Release -r osx-arm64 -p:PublishTrimmed=true
-        
+
       - name: Create macOS universal2 binary
         if: matrix.os == 'macos-latest'
         shell: bash
@@ -63,8 +66,8 @@ jobs:
       - name: 'Tar macOS universal2 build'
         if: matrix.os == 'macos-latest'
         working-directory: DanteLogger/bin/Release/net10.0/
-        run: tar -cvf DanteLogger-macOS.tar DanteLogger-macos-universal 
-
+        run: tar -cvf DanteLogger-macOS.tar DanteLogger-macos-universal
+        
       - name: 'Tar Linux x64'
         if: matrix.os == 'ubuntu-latest'
         working-directory: DanteLogger/bin/Release/net10.0/linux-x64/publish/
@@ -79,43 +82,71 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v7
         with:
-          name: "DanteLogger for Linux x64"
+          name: "DanteLogger_Linux_x64"
           path: "DanteLogger/bin/Release/net10.0/linux-x64/publish/DanteLogger-x64.tar"
           if-no-files-found: error
-          retention-days: 30
-          
+          retention-days: 1
+
       - name: Upload Linux ARM64 build
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v7
         with:
-          name: "DanteLogger for Linux ARM64"
+          name: "DanteLogger_Linux_ARM64"
           path: "DanteLogger/bin/Release/net10.0/linux-arm64/publish/DanteLogger-arm64.tar"
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
 
       - name: Upload Windows x64 build
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v7
         with:
-          name: "DanteLogger for Windows x64"
+          name: "DanteLogger_Windows_x64"
           path: "DanteLogger/bin/Release/net10.0/win-x64/publish/DanteLogger.exe"
           if-no-files-found: error
-          retention-days: 30
-          
+          retention-days: 1
+
       - name: Upload Windows Arm64 build
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v7
         with:
-          name: "DanteLogger for Windows Arm64"
+          name: "DanteLogger_Windows_arm64"
           path: "DanteLogger/bin/Release/net10.0/win-arm64/publish/DanteLogger.exe"
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
 
       - name: Upload macOS universal2 build
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v7
         with:
-          name: "DanteLogger for macOS universal2"
+          name: "DanteLogger_macOS"
           path: "DanteLogger/bin/Release/net10.0/DanteLogger-macOS.tar"
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
+  release:
+    name: Release Built Artifacts
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download artifacts
+        id: download
+        uses: actions/download-artifact@v8
+
+      - name: Create zip files
+        run: |
+          cd ${{steps.download.outputs.download-path}}
+          mv ${{steps.download.outputs.download-path}}/*/*.tar.gz .
+
+      - uses: ncipollo/release-action@v1.21.0
+        name: "Create release"
+        with:
+          token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          draft: true
+          generateReleaseNotes: true
+          allowUpdates: true
+          omitBody: 'false'
+          omitBodyDuringUpdate: 'false'
+          artifacts: |
+            *.tar.gz
