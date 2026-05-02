@@ -19,7 +19,7 @@ public class DanteDeviceState
             10 => DanteDeviceConnectionState.ConnectedMulticast,
             14 => DanteDeviceConnectionState.ConnectedManual,
             65536 => DanteDeviceConnectionState.NoAudio,
-            _ => throw new ArgumentOutOfRangeException(nameof(status), status, null)
+            _ => DanteDeviceConnectionState.Unknown,
         };
     }
 }
