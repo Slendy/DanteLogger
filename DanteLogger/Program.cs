@@ -21,6 +21,8 @@ if (args.Length > 0)
 {
     if (args.Length == 2 && args[0].Equals("substatus", StringComparison.InvariantCultureIgnoreCase))
     {
+        levelSwitch.MinimumLevel = LogEventLevel.Debug;
+        Log.Information("Checking subscription statuses of {IpAddress}", args[1]);
         var deviceIp = args[1];
         if (!IPAddress.TryParse(deviceIp, out var ipAddress))
         {
@@ -28,17 +30,22 @@ if (args.Length > 0)
             return;
         }
 
-        var client = new UdpClient(new IPEndPoint(ipAddress, 4440));
+        var client = new UdpClient();
+        client.ExclusiveAddressUse = false;
+        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+        client.Connect(ipAddress, 4440);
         var (txChannelCount, rxChannelCount) = await CommandUtil.GetChannelCount(client);
         if (rxChannelCount == null)
         {
             Log.Error("Failed to fetch channel counts");
             return;
         }
+        Log.Information("Total channel counts: RX={RxCount} Tx={TxCount}", rxChannelCount, txChannelCount);
         var subscriptionStatus = await CommandUtil.GetSubscriptionStatus(client, rxChannelCount.Value);
         
         Log.Information("Total subscriptions {TotalSubscriptions}", subscriptionStatus.Count);
         Log.Information("Highest Channel Number {HighestChannel}", subscriptionStatus.Max(s => s.ChannelNumber));
+        return;
     }
     if (args.Any(a => a == "-debug=true"))
     {

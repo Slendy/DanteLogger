@@ -59,6 +59,13 @@ public class DanteDisconnectMonitor
                 Log.Fatal("[{DeviceName}]: No audio data on channel {SubscriptionDataChannelNumber} ({SubscriptionDataCurrentChannelName})", deviceName, subscriptionData.ChannelNumber + 1, subscriptionData.CurrentChannelName);
             }
         }
+        else
+        {
+            if (newState == DanteDeviceConnectionState.NoAudio)
+            {
+                Log.Fatal("[{DeviceName}]: No audio data on channel {SubscriptionDataChannelNumber} ({SubscriptionDataCurrentChannelName})", deviceName, subscriptionData.ChannelNumber + 1, subscriptionData.CurrentChannelName);
+            }
+        }
         deviceState.ChannelConnections.AddOrUpdate(subscriptionData.ChannelNumber, newState, (_, _) => newState);
     }
 
@@ -89,7 +96,7 @@ public class DanteDisconnectMonitor
             Log.Error("Failed to fetch device name for device at {DeviceIp}", address.ToString());
             return;
         }
-        Log.Debug("Received RX update notification from {DeviceName}: {RxChannelCount} RX, {TxChannelCount TX}", deviceName, rxChannelCount, txChannelCount);
+        Log.Debug("Received RX update notification from {DeviceName}: {RxChannelCount} RX, {TxChannelCount} TX", deviceName, rxChannelCount, txChannelCount);
 
         var rxChannels = await CommandUtil.GetRxChannels(client, rxChannelCount.Value);
 
@@ -107,6 +114,8 @@ public class DanteDisconnectMonitor
             var rxChannel = rxChannels[i];
             var subscriptionStatus = subscriptionData[i];
             var statuses = DanteUtils.DetermineRxStatus(rxChannel.SubscriptionStatusCode, subscriptionStatus.SupportedConnections, subscriptionStatus.ActiveConnections);
+            
+            Log.Debug("RX statuses CH {ChNum}: {Statuses}", rxChannel.ChannelNumber, statuses);
             
             SetDeviceState(deviceName, subscriptionStatus, DanteDeviceState.ConnectionStateFromStatus(statuses));
         }

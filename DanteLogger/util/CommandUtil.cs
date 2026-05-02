@@ -55,39 +55,6 @@ public static class CommandUtil
         return (txChannelCount, rxChannelCount);
     }
 
-    public static async Task<List<RxSubscriptionData>> GetSubscriptionStatus(UdpClient client, int rxChannelCount)
-    {
-        List<RxSubscriptionData> rxSubscriptions = [];
-        for (var page = 0; page < Math.Max(rxChannelCount / 16, 1); page++)
-        {
-            var commandBuffer = new MemoryStream();
-            var writer = new BinaryWriter(commandBuffer);
-            
-            var startingChannel = (byte)(page * 16 + 1);
-
-            writer.Write([
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1, 0x00, 0x1, 0x00, startingChannel, 0x00, 0x00,
-                0x00, 0x00, 0x00, 0x00, 0x83, 0x02, 0x83, 0x06, 0x03, 0x10,
-            ]);
-
-            var finalData = BuildFinalPacket(0x3400, commandBuffer.ToArray(), RandomNumberGenerator.GetInt32(0, 65534));
-
-            client.Send(finalData);
-
-            var data = await client.ReceiveAsync();
-
-            var subscriptionData = ParseSubscriptionResponse(data.Buffer);
-            if (subscriptionData == null)
-            {
-                Log.Warning("Subscription data is null for page {PageNumber}", page);
-                Log.Warning("Dumping Hex Response: {HexDump}", Convert.ToHexString(data.Buffer));
-                break;
-            }
-            rxSubscriptions.AddRange(subscriptionData);
-        }
-        return rxSubscriptions;
-    }
-
     private static string ReadNullTerminatedString(Span<byte> buffer)
     {
         var nullIndex = buffer.IndexOf((byte)'\0');
@@ -160,6 +127,46 @@ public static class CommandUtil
         }
         return channels;
     }
+    
+    public static async Task<List<RxSubscriptionData>> GetSubscriptionStatus(UdpClient client, int rxChannelCount)
+    {
+        List<RxSubscriptionData> rxSubscriptions = [];
+        byte totalChannels = 0;
+        ushort channelsPerPage = 16;
+        for (var page = 0; page < Math.Max(Math.Ceiling(rxChannelCount / (float)channelsPerPage), 1) || totalChannels < rxChannelCount; page++)
+        {
+            var commandBuffer = new MemoryStream();
+            var writer = new BinaryWriter(commandBuffer);
+
+            writer.Write([
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1, 0x00, 0x1, 0x00, (byte)(totalChannels + 1), 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x83, 0x02, 0x83, 0x06, 0x03, 0x10
+            ]);
+
+            var finalData = BuildFinalPacket(0x3400, commandBuffer.ToArray(), RandomNumberGenerator.GetInt32(0, 65534));
+
+            client.Send(finalData);
+
+            var data = await client.ReceiveAsync();
+
+            var subscriptionData = ParseSubscriptionResponse(data.Buffer);
+            if (subscriptionData == null)
+            {
+                Log.Warning("Subscription data is null for page {PageNumber}", page);
+                Log.Warning("Dumping Hex Response: {HexDump}", Convert.ToHexString(data.Buffer));
+                break;
+            }
+
+            if (channelsPerPage != subscriptionData.First().PageSize)
+            {
+                Log.Debug("Updating channels per page to {NewPageSize}", subscriptionData.First().PageSize);
+            }
+            channelsPerPage = subscriptionData.First().PageSize;
+            totalChannels += (byte)subscriptionData.Count;
+            rxSubscriptions.AddRange(subscriptionData);
+        }
+        return rxSubscriptions;
+    }
 
     public static List<RxSubscriptionData>? ParseSubscriptionResponse(byte[] data)
         {
@@ -180,26 +187,21 @@ public static class CommandUtil
 
             // random unknown data
             reader.ReadBytes(8);
-            var totalChannels = reader.ReadByte();
-            var totalChannels2 = reader.ReadByte();
-            if (totalChannels != totalChannels2)
-            {
-                Log.Warning("ParseSubscriptionResponse(): Weird edge case {TotalChannels} != {TotalChannels2}", totalChannels, totalChannels2);
-                Log.Warning("Hex dump: {HexDump}", Convert.ToHexString(data));
-            }
+            var channelsPerPage = reader.ReadByte();
+            var channelsThisPage = reader.ReadByte();
 
             var channelData = new List<RxSubscriptionData>();
 
-            var channelIndices = new ushort[totalChannels2];
+            var channelIndices = new ushort[channelsThisPage];
 
-            for (var i = 0; i < totalChannels2; i++)
+            for (var i = 0; i < channelsThisPage; i++)
             {
                 channelIndices[i] = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
             }
 
             var dataSpan = data.AsSpan();
 
-            for (var i = 0; i < totalChannels2; i++)
+            for (var i = 0; i < channelsThisPage; i++)
             {
                 reader.BaseStream.Position = channelIndices[i];
                 
@@ -278,6 +280,7 @@ public static class CommandUtil
                     DefaultChannelName = defaultName,
                     TxChannelName = txChannelName,
                     TxDeviceName = txDeviceName,
+                    PageSize = channelsPerPage,
                 };
                 channelData.Add(rxData);
                 #if DEBUG
