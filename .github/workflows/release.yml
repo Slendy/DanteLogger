@@ -27,21 +27,21 @@ jobs:
 
       - name: Publish for Linux x64
         if: matrix.os == 'ubuntu-latest'
-        run: dotnet publish -c Release -r linux-x64 -p:PublishTrimmed=true
+        run: dotnet publish -c Release -r linux-x64 -p:PublishTrimmed=true /p:AssemblyName=DanteLogger-linux_x64
 
       - name: Publish for Linux ARM64
         if: matrix.os == 'ubuntu-latest'
-        run: dotnet publish -c Release -r linux-arm64 -p:PublishTrimmed=true
+        run: dotnet publish -c Release -r linux-arm64 -p:PublishTrimmed=true /p:AssemblyName=DanteLogger-linux_arm64
 
       - name: Publish for Windows x64
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputType=WinExe
+        run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true /p:AssemblyName=DanteLogger-win_x64
 
       - name: Publish for Windows Arm64
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: dotnet publish -c Release -r win-arm64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputType=WinExe
+        run: dotnet publish -c Release -r win-arm64 -p:PublishTrimmed=true /p:AssemblyName=DanteLogger-win_arm64
 
       - name: Publish for macOS x64
         if: matrix.os == 'macos-latest'
@@ -58,25 +58,25 @@ jobs:
         shell: bash
         working-directory: DanteLogger/bin/Release/net10.0/
         run: |
-          lipo -create -output DanteLogger-macos-universal osx-x64/publish/DanteLogger osx-arm64/publish/DanteLogger
-          codesign -fs - --deep DanteLogger-macos-universal
+          lipo -create -output DanteLogger-macOS osx-x64/publish/DanteLogger osx-arm64/publish/DanteLogger
+          codesign -fs - --deep DanteLogger-macOS
 
       # We need to tarball our macOS and Linux builds, since the ZIP files created by upload-artifact do not retain extended unix file permissions, 
       # which means the executable bit is lost, which is un-ideal for end users, who will hit weird errors (especially relating to code signing on macOS)
       - name: 'Tar macOS universal2 build'
         if: matrix.os == 'macos-latest'
         working-directory: DanteLogger/bin/Release/net10.0/
-        run: tar -cvf DanteLogger-macOS.tar DanteLogger-macos-universal
+        run: tar -cvf DanteLogger-macOS.tar DanteLogger-macOS
         
       - name: 'Tar Linux x64'
         if: matrix.os == 'ubuntu-latest'
         working-directory: DanteLogger/bin/Release/net10.0/linux-x64/publish/
-        run: tar -cvf DanteLogger-x64.tar *
+        run: tar -cvf DanteLogger-linux_x64.tar *
 
       - name: 'Tar Linux ARM64'
         if: matrix.os == 'ubuntu-latest'
         working-directory: DanteLogger/bin/Release/net10.0/linux-arm64/publish/
-        run: tar -cvf DanteLogger-arm64.tar *
+        run: tar -cvf DanteLogger-linux_arm64.tar *
 
       - name: Upload Linux x64 build
         if: matrix.os == 'ubuntu-latest'
