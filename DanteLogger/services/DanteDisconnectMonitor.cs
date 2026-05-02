@@ -66,7 +66,7 @@ public class DanteDisconnectMonitor
                 Log.Fatal("[{DeviceName}]: No audio data on channel {ChannelNumber} ({ChannelName})", deviceName, subscriptionData.ChannelNumber + 1, subscriptionData.CurrentChannelName);
             } else if (newState != DanteDeviceConnectionState.Unknown)
             {
-                Log.Information("[{DeviceName}]: Received RX update on channel {ChannelNumber} ({ChannelName}) (state={NewState}) but previous state is unknown.", deviceName, subscriptionData.ChannelNumber, subscriptionData.CurrentChannelName, newState.GetDescription());
+                Log.Debug("[{DeviceName}]: Received RX update on channel {ChannelNumber} ({ChannelName}) (state={NewState}) but previous state is unknown.", deviceName, subscriptionData.ChannelNumber, subscriptionData.CurrentChannelName, newState.GetDescription());
             }
         }
         deviceState.ChannelConnections.AddOrUpdate(subscriptionData.ChannelNumber, newState, (_, _) => newState);
