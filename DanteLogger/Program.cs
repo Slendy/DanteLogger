@@ -63,6 +63,7 @@ if (args.Length > 0)
             var statuses = DanteUtils.DetermineRxStatus(data.Status, data.SupportedConnections, data.ActiveConnections);
             
             Log.Debug("RX statuses CH {ChNum}: {Statuses} status={Status} active={Active} supported={Supported}", data.ChannelNumber, statuses, data.Status, data.ActiveConnections, data.SupportedConnections);
+            Log.Debug("Names CH {ChNum}: CurrentName: {ChName}, DefaultName: {DefaultName}, TxChName: {TxChName}, TxDeviceName: {TxDeviceName}", data.ChannelNumber, data.CurrentChannelName, data.DefaultChannelName, data.TxChannelName, data.TxDeviceName);
         }
         return;
     }

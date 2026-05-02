@@ -234,17 +234,27 @@ public static class CommandUtil
                 // unknown zeros
                 reader.ReadBytes(4);
 
+                var defaultNameIndex = (ushort)0;
+
                 if (recordLength1 == 0x16)
                 {
                     reader.ReadBytes(2);
                     
-                    // another name index?
-                    reader.ReadBytes(2);
+                    // defaultNameIndex is stored here instead
+                    defaultNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
                 }
+                
                 // unknown
                 reader.ReadBytes(2);
-                
-                var defaultNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
+
+                if (defaultNameIndex == 0)
+                {
+                    defaultNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));   
+                }
+                else
+                {
+                    reader.ReadBytes(2);
+                }
                 
                 // unknown
                 reader.ReadBytes(8);

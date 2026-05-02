@@ -80,6 +80,4 @@ struct SubscriptionResponse {
   SectionData record[count_2];
 };
 
-// RECORD SIZE = 3C
-
 SubscriptionResponse response @ 0x0;
