@@ -150,8 +150,19 @@ public class DanteDisconnectMonitor
         {
             _deviceTasks.TryAdd(notificationData.RemoteEndPoint.Address, Task.Run(async () =>
             {
-                await QueryDeviceState(notificationData.RemoteEndPoint.Address);
-                _deviceTasks.Remove(notificationData.RemoteEndPoint.Address, out _);
+                try
+                {
+                    await QueryDeviceState(notificationData.RemoteEndPoint.Address);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Failed to query device at address {DeviceIp}",
+                        notificationData.RemoteEndPoint.Address.ToString());
+                }
+                finally
+                {
+                    _deviceTasks.Remove(notificationData.RemoteEndPoint.Address, out _);    
+                }
             }, _stopToken));    
         }
     }

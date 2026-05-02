@@ -190,16 +190,16 @@ public static class CommandUtil
 
             var channelData = new List<RxSubscriptionData>();
 
-            var channelIndices = new ushort[totalChannels];
+            var channelIndices = new ushort[totalChannels2];
 
-            for (var i = 0; i < totalChannels; i++)
+            for (var i = 0; i < totalChannels2; i++)
             {
                 channelIndices[i] = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
             }
 
             var dataSpan = data.AsSpan();
 
-            for (var i = 0; i < totalChannels; i++)
+            for (var i = 0; i < totalChannels2; i++)
             {
                 reader.BaseStream.Position = channelIndices[i];
                 
