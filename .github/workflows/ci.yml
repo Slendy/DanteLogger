@@ -33,12 +33,12 @@ jobs:
       - name: Publish for Windows x64
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputType=Exe
+        run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputType=WinExe
 
       - name: Publish for Windows Arm64
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: dotnet publish -c Release -r win-arm64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputType=Exe
+        run: dotnet publish -c Release -r win-arm64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputType=WinExe
 
       - name: Publish for macOS x64
         if: matrix.os == 'macos-latest'
