@@ -32,3 +32,19 @@ public enum DanteDeviceConnectionState
     ConnectedManual,
     NoAudio,
 }
+
+public static class DanteDeviceConnectionStateExtensions
+{
+    public static string GetDescription(this DanteDeviceConnectionState state)
+    {
+        return state switch
+        {
+            DanteDeviceConnectionState.Unknown => "Unknown",
+            DanteDeviceConnectionState.ConnectedUnicast => "Connected (unicast)",
+            DanteDeviceConnectionState.ConnectedMulticast => "Connected (multicast)",
+            DanteDeviceConnectionState.ConnectedManual => "Manually configured",
+            DanteDeviceConnectionState.NoAudio => "No audio data",
+            _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
+        };
+    }
+}

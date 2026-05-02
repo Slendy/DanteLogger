@@ -63,7 +63,10 @@ public class DanteDisconnectMonitor
         {
             if (newState == DanteDeviceConnectionState.NoAudio)
             {
-                Log.Fatal("[{DeviceName}]: No audio data on channel {SubscriptionDataChannelNumber} ({SubscriptionDataCurrentChannelName})", deviceName, subscriptionData.ChannelNumber + 1, subscriptionData.CurrentChannelName);
+                Log.Fatal("[{DeviceName}]: No audio data on channel {ChannelNumber} ({ChannelName})", deviceName, subscriptionData.ChannelNumber + 1, subscriptionData.CurrentChannelName);
+            } else if (newState != DanteDeviceConnectionState.Unknown)
+            {
+                Log.Information("[{DeviceName}]: Received RX update on channel {ChannelNumber} ({ChannelName}) (state={NewState}) but previous state is unknown.", deviceName, subscriptionData.ChannelNumber, subscriptionData.CurrentChannelName, newState.GetDescription());
             }
         }
         deviceState.ChannelConnections.AddOrUpdate(subscriptionData.ChannelNumber, newState, (_, _) => newState);
@@ -98,24 +101,13 @@ public class DanteDisconnectMonitor
         }
         Log.Debug("Received RX update notification from {DeviceName}: {RxChannelCount} RX, {TxChannelCount} TX", deviceName, rxChannelCount, txChannelCount);
 
-        var rxChannels = await CommandUtil.GetRxChannels(client, rxChannelCount.Value);
-
         var subscriptionData = await CommandUtil.GetSubscriptionStatus(client, rxChannelCount.Value);
 
-        if (rxChannels.Count != subscriptionData.Count)
+        foreach (var subscriptionStatus in subscriptionData)
         {
-            Log.Warning("Channel count mismatch ({RxChannelsCount} channels != {SubscriptionDataCount} subscriptions)", rxChannels.Count, subscriptionData.Count);
-            Log.Warning("Highest Subscription Ch = {MaxSubscriptionCh}", subscriptionData.Max(s => s.ChannelNumber));
-            return;
-        }
-
-        for (var i = 0; i < rxChannels.Count; i++)
-        {
-            var rxChannel = rxChannels[i];
-            var subscriptionStatus = subscriptionData[i];
-            var statuses = DanteUtils.DetermineRxStatus(rxChannel.SubscriptionStatusCode, subscriptionStatus.SupportedConnections, subscriptionStatus.ActiveConnections);
+            var statuses = DanteUtils.DetermineRxStatus(subscriptionStatus.Status, subscriptionStatus.SupportedConnections, subscriptionStatus.ActiveConnections);
             
-            Log.Debug("RX statuses CH {ChNum}: {Statuses}", rxChannel.ChannelNumber, statuses);
+            Log.Debug("RX statuses CH {ChNum}: {Statuses} status={Status} active={Active} supported={Supported}", subscriptionStatus.ChannelNumber, statuses, subscriptionStatus.Status, subscriptionStatus.ActiveConnections, subscriptionStatus.SupportedConnections);
             
             SetDeviceState(deviceName, subscriptionStatus, DanteDeviceState.ConnectionStateFromStatus(statuses));
         }
@@ -149,10 +141,10 @@ public class DanteDisconnectMonitor
         for (var i = 0; i < numChannels; i++)
         {
             var channelBitFlag =  dataSpan[2 + i];
-            Log.Debug("CH group {GroupNumber}: {ChannelBitFlag:b8}", i + 1, channelBitFlag);
+            Log.Debug("Notification CH group {GroupNumber}: {ChannelBitFlag:b8}", i + 1, channelBitFlag);
             for (var bit = 0; bit < 8; bit++)
             {
-                Log.Debug("Channel {ChannelNumber}: {Bit} ({BitFlag} & {ShiftAmount})", i + 1, channelBitFlag & 1 << bit, channelBitFlag, 1 << bit);
+                Log.Debug("Notification Channel {ChannelNumber}: {Bit} ({BitFlag} & {ShiftAmount})", i * 8 + bit + 1, channelBitFlag & 1 << bit, channelBitFlag, 1 << bit);
             }
         }
         if (!_deviceTasks.ContainsKey(notificationData.RemoteEndPoint.Address))

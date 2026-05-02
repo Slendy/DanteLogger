@@ -10,5 +10,7 @@ public class RxSubscriptionData
     public byte SupportedConnections { get; set; }
     public byte ActiveConnections { get; set; }
     
+    public ushort Status { get; set; }
+    
     public ushort PageSize { get; set; }
 }
