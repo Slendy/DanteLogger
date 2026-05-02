@@ -36,12 +36,12 @@ jobs:
       - name: Publish for Windows x64
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputType=WinExe /p:AssemblyName=DanteLogger-win_x64
+        run: dotnet publish -c Release -r win-x64 -p:PublishTrimmed=true -p:AssemblyName=DanteLogger-win_x64
 
       - name: Publish for Windows Arm64
         if: matrix.os == 'windows-latest'
         shell: bash
-        run: dotnet publish -c Release -r win-arm64 -p:PublishTrimmed=true -p:IncludeNativeLibrariesForSelfExtract=true -p:OutputType=WinExe /p:AssemblyName=DanteLogger-win_arm64
+        run: dotnet publish -c Release -r win-arm64 -p:PublishTrimmed=true -p:AssemblyName=DanteLogger-win_arm64
 
       - name: Publish for macOS x64
         if: matrix.os == 'macos-latest'
