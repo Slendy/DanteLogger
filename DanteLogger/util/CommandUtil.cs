@@ -228,6 +228,9 @@ public static class CommandUtil
                 
                 var currentNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
 
+                // index to random header, common across all channels
+                reader.ReadBytes(2);
+
                 // unknown zeros
                 reader.ReadBytes(4);
 
@@ -244,13 +247,14 @@ public static class CommandUtil
                 var defaultNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
                 
                 // unknown
-                reader.ReadBytes(12);
+                reader.ReadBytes(8);
+
+                reader.ReadBytes(4);
 
                 var txDeviceNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
                 var txChannelNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
 
-                // unknown zeros
-                reader.ReadBytes(2);
+                var subscriptionStatus = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
 
                 var totalConnections = reader.ReadByte();
                 var activeConnections = reader.ReadByte();
@@ -275,6 +279,7 @@ public static class CommandUtil
                 {
                     ActiveConnections = activeConnections,
                     SupportedConnections = totalConnections,
+                    Status = subscriptionStatus,
                     ChannelNumber = channelNumber,
                     CurrentChannelName = currentName,
                     DefaultChannelName = defaultName,
