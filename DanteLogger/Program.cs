@@ -22,6 +22,14 @@ if (args.Length > 0)
     if (args[0] == "-v" || args[0] == "--version")
     {
         Log.Information("DanteLogger v{Tag} {GitCommit}", ThisAssembly.Git.Tag, ThisAssembly.Git.Commit);
+        Log.Information("Git Branch: {Branch}", ThisAssembly.Git.Branch);
+        Log.Information("Git Commit Date: {CommitDate}", ThisAssembly.Git.CommitDate);
+        Log.Information("Git Repo Url: {RepoUrl}", ThisAssembly.Git.RepositoryUrl);
+        Log.Information("Git Tag: {Tag}", ThisAssembly.Git.Tag);
+        Log.Information("Git BaseTag: {BaseTag}", ThisAssembly.Git.BaseTag);
+        Log.Information("Git BaseVersion: {Major}.{Minor}.{Patch}", ThisAssembly.Git.BaseVersion.Major, ThisAssembly.Git.BaseVersion.Minor, ThisAssembly.Git.BaseVersion.Patch);
+        Log.Information("Git SemVer Source: {Source}", ThisAssembly.Git.SemVer.Source);
+        Log.Information("Git SemVer: {Major}.{Minor}.{Patch}", ThisAssembly.Git.SemVer.Major,  ThisAssembly.Git.SemVer.Minor, ThisAssembly.Git.SemVer.Patch);
         return;
     }
     if (args.Length == 2 && args[0].Equals("substatus", StringComparison.InvariantCultureIgnoreCase))
