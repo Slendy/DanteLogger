@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-tags: true  # Specifically ensures tags are retrieved
+          fetch-depth: 0
         
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v5
