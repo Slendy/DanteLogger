@@ -83,7 +83,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger_Linux_x64"
-          path: "DanteLogger/bin/Release/net10.0/linux-x64/publish/DanteLogger-x64.tar"
+          path: "DanteLogger/bin/Release/net10.0/linux-x64/publish/DanteLogger-linux_x64.tar"
           if-no-files-found: error
           retention-days: 1
 
@@ -92,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger_Linux_ARM64"
-          path: "DanteLogger/bin/Release/net10.0/linux-arm64/publish/DanteLogger-arm64.tar"
+          path: "DanteLogger/bin/Release/net10.0/linux-arm64/publish/DanteLogger-linux_arm64.tar"
           if-no-files-found: error
           retention-days: 1
 
@@ -101,7 +101,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger_Windows_x64"
-          path: "DanteLogger/bin/Release/net10.0/win-x64/publish/DanteLogger.exe"
+          path: "DanteLogger/bin/Release/net10.0/win-x64/publish/DanteLogger-win_x64.exe"
           if-no-files-found: error
           retention-days: 1
 
@@ -110,7 +110,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: "DanteLogger_Windows_arm64"
-          path: "DanteLogger/bin/Release/net10.0/win-arm64/publish/DanteLogger.exe"
+          path: "DanteLogger/bin/Release/net10.0/win-arm64/publish/DanteLogger-win_arm64.exe"
           if-no-files-found: error
           retention-days: 1
 
@@ -152,4 +152,5 @@ jobs:
           omitBody: 'false'
           omitBodyDuringUpdate: 'false'
           artifacts: |
-            *.tar *.exe
+            *.tar
+            *.exe
