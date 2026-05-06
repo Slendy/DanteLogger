@@ -130,6 +130,11 @@ public static class CommandUtil
     
     public static async Task<List<RxSubscriptionData>> GetSubscriptionStatus(UdpClient client, int rxChannelCount)
     {
+        if (rxChannelCount <= 0)
+        {
+            return [];
+        }
+        
         List<RxSubscriptionData> rxSubscriptions = [];
         byte totalChannels = 0;
         ushort channelsPerPage = 16;

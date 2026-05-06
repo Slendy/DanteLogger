@@ -110,6 +110,12 @@ public class DanteDisconnectMonitor
             return;
         }
 
+        if (rxChannelCount <= 0)
+        {
+            Log.Debug("Skipping Notification because RX channel count is < 0");
+            return;
+        }
+
         var deviceName = await CommandUtil.GetDeviceName(client);
         if (deviceName == null)
         {
