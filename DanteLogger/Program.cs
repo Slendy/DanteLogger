@@ -57,6 +57,10 @@ if (args.Length > 0)
         var subscriptionStatus = await CommandUtil.GetSubscriptionStatus(client, rxChannelCount.Value);
         
         Log.Information("Total subscriptions {TotalSubscriptions}", subscriptionStatus.Count);
+        if (subscriptionStatus.Count == 0)
+        {
+            return;
+        }
         Log.Information("Highest Channel Number {HighestChannel}", subscriptionStatus.Max(s => s.ChannelNumber));
         foreach (var data in subscriptionStatus)
         {
