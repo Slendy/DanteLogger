@@ -1,9 +1,7 @@
 using System.Buffers.Binary;
-using System.Diagnostics;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
-using System.Text.Json;
 using DanteLogger.types;
 using Serilog;
 
@@ -62,9 +60,9 @@ public static class CommandUtil
         return Encoding.ASCII.GetString(buffer.ToArray(), 0, nullIndex);
     }
 
-    public static async Task<List<RxChannelData>> GetRxChannels(UdpClient client, int rxChannelCount)
+    public static async Task<List<RxSubscriptionData>> GetRxChannels(UdpClient client, int rxChannelCount)
     {
-        List<RxChannelData> channels = [];
+        List<RxSubscriptionData> channels = [];
         for (var page = 0; page < Math.Max(rxChannelCount / 16, 1); page++)
         {
             var commandBuffer = new MemoryStream();
@@ -107,6 +105,7 @@ public static class CommandUtil
                 var expected = page * 16 + i + 1;
                 if (channelNumber == 0 || channelNumber != expected)
                 {
+                    Log.Warning("GetRxChannels(): Read invalid channel number while parsing response for address {Address}", client.Client.RemoteEndPoint?.ToString());
                     break;
                 }
 
@@ -116,11 +115,59 @@ public static class CommandUtil
                 var rxChannelStatusCode = BinaryPrimitives.ReadUInt16BigEndian(record[12..14]);
                 var subscriptionStatusCode = BinaryPrimitives.ReadUInt16BigEndian(record[14..16]);
 
-                var channelData = new RxChannelData
+                var rxChannelName = rxChannelOffset != 0
+                    ? ReadNullTerminatedString(data.Buffer.AsSpan()[rxChannelOffset..])
+                    : null;
+                
+                var txDeviceName = txDeviceOffset != 0
+                    ? ReadNullTerminatedString(data.Buffer.AsSpan()[txDeviceOffset..])
+                    : null;
+                
+                var txChannelName = txChannelOffset != 0
+                    ? ReadNullTerminatedString(data.Buffer.AsSpan()[txChannelOffset..])
+                    : null;
+                
+                var activeConnections = rxChannelStatusCode & 0x3;
+                var supportedConnections = rxChannelStatusCode >> 8 & 0x3;
+                
+#if DEBUG
+
+                Log.Debug("=-=- Channel {ChannelNumber} -=-=", channelNumber);
+                Log.Debug("TxChannelOffset: {TxChannelOffset}", txChannelOffset);
+                if (txChannelOffset != 0)
                 {
-                    ChannelNumber  = channelNumber,
-                    RxChannelStatusCode = rxChannelStatusCode,
-                    SubscriptionStatusCode = subscriptionStatusCode,
+                    Log.Debug("TxChannel: {TxChannel}",
+                        ReadNullTerminatedString(data.Buffer.AsSpan()[txChannelOffset..]));
+                }
+
+                Log.Debug("TxDeviceOffset: {txDeviceOffset}", txDeviceOffset);
+                if (txDeviceOffset != 0)
+                {
+                    Log.Debug("TxDevice: {TxDevice}", ReadNullTerminatedString(data.Buffer.AsSpan()[txDeviceOffset..]));
+                }
+                
+                Log.Debug("RxChannelOffset: {rxChannelOffset}", rxChannelOffset);
+                if (rxChannelOffset != 0)
+                {
+                    Log.Debug("RxChannel: {RxChannel}",
+                        ReadNullTerminatedString(data.Buffer.AsSpan()[rxChannelOffset..]));
+                }
+
+                Log.Debug("RxChannelStatusCode: {BinaryStatus:b8} ({rxChannelStatusCode})", rxChannelStatusCode, rxChannelStatusCode);
+                Log.Debug("SubscriptionStatusCode: {subscriptionStatusCode}", subscriptionStatusCode);
+                Log.Debug("active={ActiveConnections}, supportedConnections={SupportedConnections}", activeConnections, supportedConnections);
+#endif
+
+                var channelData = new RxSubscriptionData
+                {
+                    ChannelNumber = channelNumber,
+                    ActiveConnections = (byte)activeConnections,
+                    SupportedConnections = (byte)supportedConnections,
+                    CurrentChannelName = rxChannelName ?? "Unknown",
+                    DefaultChannelName = channelNumber.ToString(),
+                    TxChannelName = txChannelName,
+                    TxDeviceName = txDeviceName,
+                    Status = subscriptionStatusCode,
                 };
                 channels.Add(channelData);
             }
@@ -157,8 +204,8 @@ public static class CommandUtil
             var subscriptionData = ParseSubscriptionResponse(data.Buffer);
             if (subscriptionData == null)
             {
-                Log.Warning("Subscription data is null for page {PageNumber}", page);
-                Log.Warning("Dumping Hex Response: {HexDump}", Convert.ToHexString(data.Buffer));
+                Log.Debug("Subscription data is null for page {PageNumber}", page);
+                Log.Debug("Dumping Hex Response: {HexDump}", Convert.ToHexString(data.Buffer));
                 break;
             }
 

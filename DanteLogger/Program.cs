@@ -57,11 +57,7 @@ if (args.Length > 0)
         var subscriptionStatus = await CommandUtil.GetSubscriptionStatus(client, rxChannelCount.Value);
         
         Log.Information("Total subscriptions {TotalSubscriptions}", subscriptionStatus.Count);
-        if (subscriptionStatus.Count == 0)
-        {
-            return;
-        }
-        Log.Information("Highest Channel Number {HighestChannel}", subscriptionStatus.Max(s => s.ChannelNumber));
+        Log.Information("Highest Channel Number {HighestChannel}", subscriptionStatus.DefaultIfEmpty().Max(s => s?.ChannelNumber));
         foreach (var data in subscriptionStatus)
         {
             var statuses = DanteUtils.DetermineRxStatus(data.Status, data.SupportedConnections, data.ActiveConnections);
@@ -69,6 +65,9 @@ if (args.Length > 0)
             Log.Debug("RX statuses CH {ChNum}: {Statuses} status={Status} active={Active} supported={Supported}", data.ChannelNumber, statuses, data.Status, data.ActiveConnections, data.SupportedConnections);
             Log.Debug("Names CH {ChNum}: CurrentName: {ChName}, DefaultName: {DefaultName}, TxChName: {TxChName}, TxDeviceName: {TxDeviceName}", data.ChannelNumber, data.CurrentChannelName, data.DefaultChannelName, data.TxChannelName, data.TxDeviceName);
         }
+
+        var rxChannels = await CommandUtil.GetRxChannels(client, rxChannelCount.Value);
+        Log.Information("RxChannel backup method count: {RxChCount}", rxChannels.Count);
         return;
     }
     if (args.Any(a => a == "-debug=true"))

@@ -126,9 +126,14 @@ public class DanteDisconnectMonitor
 
         var subscriptionData = await CommandUtil.GetSubscriptionStatus(client, rxChannelCount.Value);
 
-        if (subscriptionData.Count < rxChannelCount)
+        if (subscriptionData.Count == 0 && rxChannelCount > 0)
         {
-            Log.Warning("Failed to retrieve subscription data for {DeviceName} ({DeviceIp}). Has {ChCount} channels but received {ActualCount}", deviceName, address.ToString(), rxChannelCount, subscriptionData.Count);
+            Log.Debug("Using backup method for fetching subscription data for {DeviceName}", deviceName);
+            subscriptionData = await CommandUtil.GetRxChannels(client, rxChannelCount.Value);
+            if (subscriptionData.Count < rxChannelCount)
+            {
+                Log.Warning("Failed to retrieve subscription data for {DeviceName} ({DeviceIp}). Has {ChCount} channels but received {ActualCount}", deviceName, address.ToString(), rxChannelCount, subscriptionData.Count);
+            }
         }
 
         foreach (var subscriptionStatus in subscriptionData)
