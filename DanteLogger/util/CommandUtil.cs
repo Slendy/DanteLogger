@@ -313,8 +313,8 @@ public static class CommandUtil
 
                 reader.ReadBytes(4);
 
-                var txDeviceNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
                 var txChannelNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
+                var txDeviceNameIndex = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
 
                 var subscriptionStatus = BinaryPrimitives.ReadUInt16BigEndian(reader.ReadBytes(2));
 
